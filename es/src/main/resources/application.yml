@@ -1,0 +1,5 @@
+server:
+  port: 8833
+elasticsearch:
+  host: 120.24.108.136
+  port: 9200
