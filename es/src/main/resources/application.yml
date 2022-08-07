@@ -1,5 +1,5 @@
 server:
   port: 8833
 elasticsearch:
-  host: 120.24.108.136
+  host: 59.110.155.28
   port: 9200

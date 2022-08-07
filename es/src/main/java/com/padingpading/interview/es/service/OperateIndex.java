@@ -24,22 +24,26 @@ public class OperateIndex {
     public boolean createIndex(String indexName) throws IOException {
         XContentBuilder xContentBuilder = XContentFactory.jsonBuilder()
                 .startObject()
-                    .field("properties").startObject()
-                        .field("firstName").startObject()
-                            .field("type","keyword")
+                    .field("properties")
+                        .startObject()
+                            .field("firstName")
+                                .startObject()
+                                    .field("type","keyword")
+                                .endObject()
+                            .field("secondName")
+                                .startObject()
+                                    .field("type","keyword")
+                                .endObject()
+                            .field("age")
+                                .startObject()
+                                    .field("type","integer")
+                                .endObject()
+                            .field("content")
+                                .startObject()
+                                    .field("type","text")
+                                .endObject()
                         .endObject()
-                        .field("secondName").startObject()
-                            .field("type","keyword")
-                        .endObject()
-                        .field("age").startObject()
-                            .field("type","integer")
-                        .endObject()
-                        .field("content").startObject()
-                            .field("type","text")
-                        .endObject()
-                    .endObject()
                 .endObject();
-
         CreateIndexRequest createIndexRequest = new CreateIndexRequest(indexName);
         createIndexRequest.mapping(xContentBuilder);
         CreateIndexResponse createIndexResponse
@@ -49,7 +53,10 @@ public class OperateIndex {
         return acknowledeg;
 
     }
-
+    
+    /**
+     * 索引是否存在
+     */
     public boolean isIndexExists(String indexName) {
         GetIndexRequest getIndexRequest = new GetIndexRequest(indexName);
         getIndexRequest.humanReadable(true);

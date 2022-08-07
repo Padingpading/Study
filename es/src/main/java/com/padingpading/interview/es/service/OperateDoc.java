@@ -58,7 +58,10 @@ public class OperateDoc {
     public ResponseBean getDoc(String indexName, String docId) {
         return  new ResponseBean(200,"参考TestEsHighSdk",indexName+docId);
     }
-
+    
+    /**
+     * 更新某个字段。
+     */
     public ResponseBean updateDoc(String indexName, String docId, String fieldName,
                                   String fieldValue) {
         try {
@@ -66,11 +69,13 @@ public class OperateDoc {
             xContentBuilder.startObject();
             {
                 xContentBuilder.field(fieldName,fieldValue);
+                //日期类型。
                 //xContentBuilder.timeField()
             }
             xContentBuilder.endObject();
             UpdateRequest request =
                     new UpdateRequest(indexName, docId).doc(xContentBuilder);
+            //文档不存在插入。
             request.docAsUpsert(true);
             request.fetchSource(true);/*在应答里包含当前文档的内容*/
             UpdateResponse updateResponse =
