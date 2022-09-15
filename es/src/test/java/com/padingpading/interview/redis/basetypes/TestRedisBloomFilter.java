@@ -1,34 +1,56 @@
-//package com.padingpading.interview.redis.basetypes;
-//
-//import com.padingpading.interview.redis.func.bloom.RedisBloomFilter;
-//import org.junit.jupiter.api.Test;
-//import org.springframework.beans.factory.annotation.Autowired;
-//import org.springframework.boot.test.context.SpringBootTest;
-//
-//@SpringBootTest
-//public class TestRedisBloomFilter {
-//
-//    private static final int DAY_SEC = 60 * 60 * 24;
-//
-//    @Autowired
-//    private RedisBloomFilter redisBloomFilter;
-//
-//    @Test
-//    public void testInsert() throws Exception {
-//        System.out.println(redisBloomFilter);
-//        redisBloomFilter.insert("topic_read:8839540:20210810", "76930242", DAY_SEC);
-//        redisBloomFilter.insert("topic_read:8839540:20210810", "76930243", DAY_SEC);
-//        redisBloomFilter.insert("topic_read:8839540:20210810", "76930244", DAY_SEC);
-//        redisBloomFilter.insert("topic_read:8839540:20210810", "76930245", DAY_SEC);
-//        redisBloomFilter.insert("topic_read:8839540:20210810", "76930246", DAY_SEC);
-//    }
-//
-//    @Test
-//    public void testMayExist() throws Exception {
-//        System.out.println(redisBloomFilter.mayExist("topic_read:8839540:20210810", "76930242"));
-//        System.out.println(redisBloomFilter.mayExist("topic_read:8839540:20210810", "76930244"));
-//        System.out.println(redisBloomFilter.mayExist("topic_read:8839540:20210810", "76930246"));
-//        System.out.println(redisBloomFilter.mayExist("topic_read:8839540:20210810", "86930250"));
-//    }
-//
-//}
+package com.padingpading.interview.redis.basetypes;
+
+import org.elasticsearch.action.search.SearchRequest;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.client.RequestOptions;
+import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.aggregations.AggregationBuilder;
+import org.elasticsearch.search.aggregations.AggregationBuilders;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.elasticsearch.search.sort.SortOrder;
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+
+import javax.annotation.Resource;
+import java.util.Map;
+
+@SpringBootTest
+public class TestRedisBloomFilter {
+
+    private static final int DAY_SEC = 60 * 60 * 24;
+    
+    @Resource
+    private RestHighLevelClient restHighLevelClient;
+    
+    @Test
+    public void testInsert() throws Exception {
+        String indexNmme = "books";
+        SearchRequest searchRequest = new SearchRequest();
+        searchRequest.indices(indexNmme);
+        //search
+        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+        searchSourceBuilder.query(QueryBuilders.matchQuery("author","史蒂芬霍金"));
+        searchSourceBuilder.sort("time", SortOrder.DESC);
+        //aggregation
+        AggregationBuilder aggregation =
+                AggregationBuilders
+                        .terms("agg").field("name")
+                        .subAggregation(
+                                AggregationBuilders.topHits("top").sort("name",SortOrder.DESC).size(1)
+                        );
+        searchSourceBuilder.aggregation(aggregation);
+    
+        searchRequest.source(searchSourceBuilder);
+    
+        SearchResponse response = restHighLevelClient.search(searchRequest, RequestOptions.DEFAULT);
+    
+        SearchHit[] searchHits = response.getHits().getHits();
+        for (SearchHit hit : searchHits) {
+            Map<String, Object> sourceAsMap = hit.getSourceAsMap();
+            System.out.println(sourceAsMap);
+        }
+    }
+
+}
